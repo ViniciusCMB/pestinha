@@ -56,15 +56,18 @@ def overlay_flags():
     )
 
 
-def reposicionar(widget, x, y):
+def reposicionar(widget, x, y, tamanho=None):
     """
     Põe a janela em (x, y). No X11/Windows/macOS o `move()` do Qt basta; no Hyprland
     (Wayland) o compositor ignora o `move()` e quem move é o backend, pelo IPC dele.
+    `tamanho` é o tamanho desejado (largura, altura): vale quando o compositor
+    dilatou a janela (ex.: janela nascida tiled) e o tamanho atual não serve.
     """
     widget.move(int(x), int(y))
     mover = getattr(plataforma, "mover_janela", None)
     if mover is not None:
-        mover(os.getpid(), widget.windowTitle(), widget.width(), widget.height(), int(x), int(y))
+        largura, altura = tamanho if tamanho is not None else (widget.width(), widget.height())
+        mover(os.getpid(), widget.windowTitle(), largura, altura, int(x), int(y))
 
 
 class PetWindow(QWidget):

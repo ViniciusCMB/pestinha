@@ -214,10 +214,17 @@ def _endereco_da_janela(pid, titulo, largura, altura):
     chave = (pid, titulo, largura, altura)
     if chave in _enderecos:
         return _enderecos[chave]
+    # pid + título já identificam a janela (os títulos são únicos por janela do pet);
+    # o tamanho pode não bater aqui porque a janela nova nasce tiled no Hyprland,
+    # com o tamanho do workspace em vez do tamanho do widget.
     for cliente in _clientes():
         if cliente.get("pid") != pid:
             continue
-        if titulo and cliente.get("title") != titulo:
+        if titulo and cliente.get("title") == titulo:
+            _enderecos[chave] = cliente["address"]
+            return cliente["address"]
+    for cliente in _clientes():
+        if cliente.get("pid") != pid:
             continue
         if list(cliente.get("size") or []) != [largura, altura]:
             continue
@@ -267,11 +274,15 @@ def configurar_janela(pid, titulo, largura, altura):
     janela = f'address:{endereco}'
     for comando in (
         f'hl.dsp.window.float({{action="on", window="{janela}"}})',
+        f'hl.dsp.window.resize({{x={int(largura)}, y={int(altura)}, relative=false, window="{janela}"}})',
         f'hl.dsp.window.pin({{action="on", window="{janela}"}})',
         f'hl.dsp.window.alter_zorder({{mode="top", window="{janela}"}})',
         f'hl.dsp.window.set_prop({{prop="decorate", value="0", window="{janela}"}})',
         f'hl.dsp.window.set_prop({{prop="border_size", value="0", window="{janela}"}})',
         f'hl.dsp.window.set_prop({{prop="rounding", value="0", window="{janela}"}})',
+        f'hl.dsp.window.set_prop({{prop="no_blur", value="1", window="{janela}"}})',
+        f'hl.dsp.window.set_prop({{prop="no_shadow", value="1", window="{janela}"}})',
+        f'hl.dsp.window.set_prop({{prop="no_dim", value="1", window="{janela}"}})',
     ):
         _pedir(f"dispatch {comando}")
     return True

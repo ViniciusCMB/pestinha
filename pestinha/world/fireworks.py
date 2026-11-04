@@ -50,10 +50,14 @@ class Fireworks(QWidget):
 
     def launch(self, x, y):
         """Solta o foguete de (x, y), a posição do pet na tela."""
+        self._pos = (x - WIN / 2, y - WIN)
         reposicionar(self, x - WIN / 2, y - WIN)
         self.rocket = [WIN / 2, WIN - 40.0, -380.0, 0.0]
         self.sparks = []
         self.show()
+        # no Hyprland o cliente pode ainda não existir no compositor: tenta de novo
+        for atraso in (100, 300, 800):
+            QTimer.singleShot(atraso, lambda: reposicionar(self, *self._pos))
         if not self._pausado:
             self.timer.start(16)
 
